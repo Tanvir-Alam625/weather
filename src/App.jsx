@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   formatClock,
@@ -23,9 +24,38 @@ const initialPlace = {
 
 const spring = { type: "spring", stiffness: 190, damping: 24 };
 
+function getSavedPlace() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("weather-place"));
+    if (
+      saved?.name &&
+      Number.isFinite(saved.latitude) &&
+      Number.isFinite(saved.longitude)
+    ) {
+      return saved;
+    }
+  } catch (error) {
+    console.warn("The saved weather location could not be read.", error);
+    return initialPlace;
+  }
+  return initialPlace;
+}
+
+function getSavedForecast(placeId) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(`weather-forecast:${placeId}`));
+    if (saved?.current && saved?.hourly && saved?.daily) return saved;
+  } catch (error) {
+    console.warn("The saved forecast could not be read.", error);
+    return null;
+  }
+  return null;
+}
+
 function Icon({ name, size = 20, ...props }) {
   const paths = {
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
+    install: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5M12 15V3" /></>,
     pin: <><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
     sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></>,
     moon: <path d="M20.8 13A8.4 8.4 0 0 1 11 3.2 8.5 8.5 0 1 0 20.8 13Z" />,
@@ -324,6 +354,125 @@ function SearchBox({ onSelect, reducedMotion }) {
   );
 }
 
+function InstallApp() {
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(() =>
+    window.matchMedia("(max-width: 640px)").matches,
+  );
+  const isIOS =
+    /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isMobile =
+    isIOS ||
+    /android/i.test(navigator.userAgent) ||
+    isSmallScreen;
+
+  useEffect(() => {
+    const displayMode = window.matchMedia("(display-mode: standalone)");
+    const mobileViewport = window.matchMedia("(max-width: 640px)");
+    const syncInstalled = () => {
+      setIsInstalled(displayMode.matches || navigator.standalone === true);
+    };
+    const syncViewport = () => setIsSmallScreen(mobileViewport.matches);
+    const onInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+    const onInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+      setShowInstructions(false);
+    };
+
+    syncInstalled();
+    syncViewport();
+    displayMode.addEventListener?.("change", syncInstalled);
+    mobileViewport.addEventListener?.("change", syncViewport);
+    window.addEventListener("beforeinstallprompt", onInstallPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      displayMode.removeEventListener?.("change", syncInstalled);
+      mobileViewport.removeEventListener?.("change", syncViewport);
+      window.removeEventListener("beforeinstallprompt", onInstallPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  if (isInstalled || (!installPrompt && !isMobile)) return null;
+
+  const install = async () => {
+    if (!installPrompt) {
+      setShowInstructions(true);
+      return;
+    }
+
+    try {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      setInstallPrompt(null);
+      if (choice.outcome === "dismissed") setShowInstructions(true);
+    } catch {
+      setInstallPrompt(null);
+      setShowInstructions(true);
+    }
+  };
+
+  return (
+    <>
+      <button className="install-button" type="button" onClick={install}>
+        <Icon name="install" size={15} />
+        <span>Install app</span>
+      </button>
+      {showInstructions &&
+        createPortal(
+          <div
+            className="install-overlay"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setShowInstructions(false);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setShowInstructions(false);
+            }}
+          >
+            <section
+              className="install-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="install-title"
+            >
+              <button
+                className="icon-button install-close"
+                type="button"
+                aria-label="Close install instructions"
+                autoFocus
+                onClick={() => setShowInstructions(false)}
+              >
+                <Icon name="close" size={19} />
+              </button>
+              <span className="install-dialog-icon"><Icon name="install" size={22} /></span>
+              <p className="eyebrow">TAKE YOUR FORECAST WITH YOU</p>
+              <h2 id="install-title">Add Weather to your home screen</h2>
+              <p className="install-help">
+                {isIOS
+                  ? "Tap the Share button in your browser, then choose “Add to Home Screen”."
+                  : "Open your browser menu and choose “Install app” or “Add to Home screen”."}
+              </p>
+              <p className="install-help install-help--muted">
+                Once added, Weather opens like an app and can load your last available forecast offline.
+              </p>
+              <button className="install-done" type="button" onClick={() => setShowInstructions(false)}>
+                Got it
+              </button>
+            </section>
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
 function Temperature({ value, className = "" }) {
   return (
     <span className={className} aria-label={`${Math.round(value)} degrees Celsius`}>
@@ -443,8 +592,12 @@ function DetailCard({ icon, label, value, note, index, reducedMotion }) {
 
 function App() {
   const reducedMotion = useReducedMotion();
-  const [place, setPlace] = useState(initialPlace);
-  const [weatherResult, setWeatherResult] = useState(null);
+  const [place, setPlace] = useState(getSavedPlace);
+  const [weatherResult, setWeatherResult] = useState(() => {
+    const savedPlace = getSavedPlace();
+    const forecast = getSavedForecast(savedPlace.id);
+    return forecast ? { placeId: savedPlace.id, data: forecast } : null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
@@ -456,6 +609,14 @@ function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("weather-place", JSON.stringify(place));
+    } catch (error) {
+      console.warn("The weather location could not be saved.", error);
+    }
+  }, [place]);
 
   useEffect(() => {
     const syncVisibility = () => {
@@ -471,9 +632,24 @@ function App() {
     setLoading(true);
     setError("");
     getForecast(place, controller.signal)
-      .then((data) => setWeatherResult({ placeId: place.id, data }))
+      .then((data) => {
+        setWeatherResult({ placeId: place.id, data });
+        try {
+          localStorage.setItem(`weather-forecast:${place.id}`, JSON.stringify(data));
+        } catch (storageError) {
+          console.warn("The offline forecast could not be saved.", storageError);
+        }
+      })
       .catch((requestError) => {
-        if (requestError.name !== "AbortError") setError(requestError.message);
+        if (requestError.name !== "AbortError") {
+          const savedForecast = getSavedForecast(place.id);
+          if (savedForecast) {
+            setWeatherResult({ placeId: place.id, data: savedForecast });
+            setError("You're offline. Showing your last saved forecast.");
+          } else {
+            setError(requestError.message);
+          }
+        }
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
@@ -565,12 +741,15 @@ function App() {
             <p className="eyebrow">{localDate || "YOUR PERSONAL WEATHER"}</p>
             <h1>Weather, with a little <span>more feeling.</span></h1>
           </div>
-          <div className="updated-wrap">
-            {geoMessage && <span className="inline-notice" role="status">{geoMessage}</span>}
-            <button className="updated-button" onClick={() => setReloadKey((value) => value + 1)} disabled={loading}>
-              <Icon name="refresh" size={15} className={loading ? "spin" : ""} />
-              {weather ? `Updated ${formatUpdatedTime(weather.current.time)}` : "Refresh forecast"}
-            </button>
+          <div className="intro-actions">
+            <InstallApp />
+            <div className="updated-wrap">
+              {geoMessage && <span className="inline-notice" role="status">{geoMessage}</span>}
+              <button className="updated-button" onClick={() => setReloadKey((value) => value + 1)} disabled={loading}>
+                <Icon name="refresh" size={15} className={loading ? "spin" : ""} />
+                {weather ? `Updated ${formatUpdatedTime(weather.current.time)}` : "Refresh forecast"}
+              </button>
+            </div>
           </div>
         </div>
 

@@ -20,7 +20,7 @@ docker build -t weather .
 docker run --rm -p 8080:8080 weather
 ```
 
-Open [http://localhost:8080](http://localhost:8080). The container serves the optimized static build with Nginx and supports client-side routes. Browser geolocation requires a secure context; it works on `localhost` and on HTTPS deployments.
+Open [http://localhost:8080](http://localhost:8080). The container serves the optimized static build with Nginx, supports client-side routes, and includes the offline app shell. Browser geolocation and PWA installation require a secure context; they work on `localhost` and on HTTPS deployments. On iPhone or iPad, tap **Install app**, then use the browser's Share menu and choose **Add to Home Screen**.
 
 ## Features
 
@@ -30,5 +30,6 @@ Open [http://localhost:8080](http://localhost:8080). The container serves the op
 - Switch between dark and light themes.
 - Weather-specific sun, cloud, rain, snow, and fog effects; CSS handles atmospheric loops and Motion handles responsive interface transitions.
 - Reduced-motion preferences, mobile layouts, loading feedback, and explicit network errors.
+- Installable PWA with an offline app shell and cached recent forecasts and location searches.
 
 Forecast data is provided by [Open-Meteo](https://open-meteo.com/).

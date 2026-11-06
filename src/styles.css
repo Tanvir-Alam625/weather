@@ -405,6 +405,123 @@ button:disabled {
   gap: 7px;
 }
 
+.intro-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.install-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.install-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(120, 190, 239, 0.48);
+  background: var(--panel-hover);
+}
+
+.install-button svg,
+.install-dialog-icon {
+  color: var(--accent);
+}
+
+.install-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(7, 13, 20, 0.67);
+  backdrop-filter: blur(7px);
+}
+
+.install-dialog {
+  position: relative;
+  width: min(100%, 390px);
+  padding: 30px;
+  border: 1px solid var(--line-strong);
+  border-radius: 22px;
+  background: var(--panel-solid);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+.install-close {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+}
+
+.install-dialog-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 20px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(121, 177, 219, 0.08);
+}
+
+.install-dialog .eyebrow {
+  margin-bottom: 8px;
+}
+
+.install-dialog h2 {
+  max-width: 290px;
+  margin: 0 0 13px;
+  font-family: Manrope, sans-serif;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
+  line-height: 1.25;
+}
+
+.install-help {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.install-help--muted {
+  color: var(--subtle);
+  font-size: 11px;
+}
+
+.install-done {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--accent-strong);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+:root[data-theme="light"] .install-done {
+  color: #fff;
+}
+
 .updated-button {
   display: flex;
   align-items: center;
@@ -1336,6 +1453,17 @@ button:disabled {
 
   .updated-wrap {
     justify-items: start;
+  }
+
+  .intro-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .install-button {
+    min-height: 34px;
+    padding: 0 10px;
   }
 
   .updated-button {
