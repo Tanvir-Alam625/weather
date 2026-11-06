@@ -1,3 +1,5 @@
+<img width="984" height="889" alt="image" src="https://github.com/user-attachments/assets/15afd657-a18e-4d78-9cef-a40466b18588" />
+
 # Weather
 
 Weather is a responsive weather dashboard built with React, Vite, and Motion. It uses Open-Meteo's free geocoding and forecast APIs, so no API key or backend setup is required.
