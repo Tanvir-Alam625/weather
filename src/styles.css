@@ -1379,7 +1379,7 @@ button:disabled {
     top: 0;
     right: 0;
     left: 0;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 12px;
     width: 100%;
     height: 72px;
@@ -1389,11 +1389,55 @@ button:disabled {
     background: var(--page);
     background: color-mix(in srgb, var(--page) 88%, transparent);
     backdrop-filter: blur(18px);
+    transition: grid-template-columns 180ms ease, padding 180ms ease;
+  }
+
+  .topbar--searching {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .topbar--searching .brand,
+  .topbar--searching .topbar-actions {
+    display: none;
+  }
+
+  .topbar--searching .search-wrap {
+    grid-column: 1;
   }
 
   .brand {
     gap: 8px;
     font-size: 16px;
+  }
+
+  .brand > span:last-child {
+    display: none;
+  }
+
+  .search-wrap,
+  .search-box {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .suggestions {
+    top: calc(100% + 8px);
+    max-height: calc(100dvh - 82px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .suggestions button > span:nth-child(2) {
+    min-width: 0;
+  }
+
+  .suggestions small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   .brand-mark {
@@ -1599,10 +1643,16 @@ button:disabled {
 
 @media (max-width: 380px) {
   .topbar {
-    grid-template-columns: auto minmax(95px, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 8px;
     width: 100%;
     padding: 0 11px;
+  }
+
+  .topbar.topbar--searching {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: 12px;
+    padding-left: 12px;
   }
 
   .brand {

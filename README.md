@@ -35,3 +35,19 @@ Open [http://localhost:8080](http://localhost:8080). The container serves the op
 - Installable PWA with an offline app shell and cached recent forecasts and location searches.
 
 Forecast data is provided by [Open-Meteo](https://open-meteo.com/).
+
+## Source layout
+
+```text
+src/
+  App.jsx
+  components/
+    forecast/   Hourly and daily forecast panels
+    pwa/        Install prompt and home-screen guidance
+    search/     City search and location suggestions
+    ui/         Shared interface icons
+    weather/    Weather scene, icons, details, and temperature
+  weather/      Forecast and browser-storage utilities
+  main.jsx
+  styles.css
+```
